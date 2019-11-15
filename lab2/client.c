@@ -6,6 +6,9 @@
 #include <string.h>
 #include <time.h>
 
+
+#include <arpa/inet.h>
+
 #include "info.h"
 
 void perror_and_exit(char *s, int exit_code)
@@ -14,15 +17,12 @@ void perror_and_exit(char *s, int exit_code)
 	exit(exit_code);
 }
 
-
-
 int main()
 {
     int sock;
 	char message[MSG_LEN];
 	char buf[MSG_LEN];
     struct sockaddr_in addr;
-
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock < 0)
 		perror_and_exit("socket()", 1);
@@ -33,10 +33,10 @@ int main()
     if(connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 		perror_and_exit("connect()", 2);
 
-	int a = rand() % 10 + 1;;
-	char c[2];
-	c[0] = '0' + a;
-	c[1] = '\0';
+	int a;
+	scanf("%d", &a);
+	char c[10];
+	sprintf(c, "%d", a);
 	printf("The client send this index:\n");
 	printf("%s\n\n", c);
 	printf("Sending message...\n\n");
@@ -46,9 +46,11 @@ int main()
     if(recv(sock, buf, sizeof(message), 0) < 0)
 		perror_and_exit("recv()", 4);
 
-	printf("The server return to client this addres:\n");
+	printf("The server return to client this address:\n");
     printf("%s\n\n", buf);
     close(sock);
+
+	
 
     return 0;
 }

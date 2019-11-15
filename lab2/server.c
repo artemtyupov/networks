@@ -58,8 +58,9 @@ char_to_int (char c)
       case 'e': res = 14; break;
       case 'F':
       case 'f': res = 15; break;
+      case '.': res = -1; break;
       default:
-        res = -1; break;
+        abort();
     }
 
   return res;
@@ -88,7 +89,7 @@ int_to_char (int n)
       case 14: res = 'E'; break;
       case 15: res = 'F'; break;
       default:
-        res = ""; break;
+        abort();
     }
 
   return res;
@@ -105,30 +106,21 @@ divide_string (int radix,
   int divident_ind; 
   int cur_divident; 
   int cur_quotient; 
-  int cur_reminder; /* òåêóùèé îñòàòîê */
-  int int_val;      /* ïðîìåæóòî÷íîå çíà÷åíèå äëÿ öåëîãî */
-  char char_val;    /* ïðîìåæóòî÷íîå çíà÷åíèå äëÿ ñèìâîëà */
+  int cur_reminder; 
+  int int_val;   
+  char char_val;   
   int flag_first;
 
-/*  printf ("=== START DIVIDE: radix=%d, divident_str=%s, divisor=%d\n", radix, divident_str, divisor); */
 
-  /* Î÷èùàåì ñòðîêó äëÿ ÷àñòíîãî */
   pas_clear_string (res_quotient_str);
 
-  /* Âû÷èñëÿåì äëèíó äåëèìîãî è óñòàíàâëèâàåì òåêóùèé ðàçðÿä
-   * íà íà÷àëî ñòðîêîâãî ïðåäñòàâëåíèÿ */
   divident_len = pas_get_string_length (divident_str);
   divident_ind = 0;
 
-  /* Òåêóùåå çíà÷åíèå äåëèìîãî (ïî ñóòè äëÿ îäíîé èòåðàöèè äåëåíèÿ ñòîëáèêîì) */
   cur_divident = 0;
 
-  /* Öèêë ïî ðàçðÿäàì äåëèòåëÿ */
   do
     {
-      /* Åñëè òåêóùåå çíà÷åíèå äåëèìîãî ìåíüøå äåëèòåëÿ è åñëè åñòü åù¸
-       * ñâîáîäíûå ðàçðÿäû, òî ñïóñêàåì ñëåäóþùèé ðàçðÿä è ïðèêëåèâàåì
-       * åãî ê òåêóùåìó çíà÷åíèþ äåëèìîãî */
       flag_first = 0;
       while (cur_divident < divisor && divident_ind < divident_len)
         {
@@ -136,49 +128,37 @@ divide_string (int radix,
           divident_ind++;
           int_val = char_to_int (char_val);
           if (int_val == -1)
+          {
             continue;
+          }
           cur_divident = cur_divident * radix + int_val;
-
-          /* Åñëè çà ðàç ïðèõîäèòñÿ ñïóñêàòü áîëåå îäíîãî ðàçðÿäà, òî
-           * íà êàæäûé ðàçðÿä, íà÷èíàÿ ñî âòîðîãî, íóæíî ê ðåçóëüòàòó
-           * äîðèñîâûâàòü íîëèê. Åñëè â ÷àñòíîì ó íàñ åù¸ íè÷åãîíå çàïèñàíî,
-           * òî ýòîãî äåëàòü íå íàäî. Òàêîå âîçíèêàåò èç-çà òîãî, ÷òî
-           * ñàìû ñòàðøèé ðàçðÿä äåëèìîãî ìû ïî ñóòè äåëà òîæå ñïóñêàåì */
           if (flag_first == 1 && pas_get_string_length( res_quotient_str) > 0)
             {
               char_val = int_to_char (0);
               if (char_val = "")
+              {
                 continue;
+              }
               pas_append_char_to_string (res_quotient_str, char_val);
             }
 
           flag_first = 1;
         }
-
-      /* ×àñòíîå îò äåëåíèÿ - ýòî òî, ÷òî ïðè äåëåíèè ñòîëáèêîì çàïèñûâàåì
-       * â î÷åðåäíîé ðàçðÿä ÷àñòíîãî, îñòàòîê - ýòî òî, ÷òî ïåðåíåñ¸ì
-       * íà ñëåäóþùóþ èòåðàöèþ äåëåíèÿ (èëè èòîãîâûé îñòàòîê) */
       cur_quotient = cur_divident / divisor;
       cur_reminder = cur_divident % divisor;
 
-      /* Äîïèñûâàåì òåêóùèé ðàçðÿä ÷àñòíîãî ê ñòðîêå */
       int_val = cur_quotient;
       char_val = int_to_char (int_val);
       pas_append_char_to_string (res_quotient_str, char_val);
 
-      /* Îñòàòîê òåïåðü ñòàíîâèòñÿ äåëèìûì äëÿ ñëåäóþùåé èòåðàöèè */
       cur_divident = cur_reminder;
     }
   while (divident_ind < divident_len);
 
-  /* Â öèêëå ìû óæå çàïèñàëè ðåçóëüòèðóþùåå ÷àñòíîå. Çàïèøåì ðåçóëüòèðóþùèé îñòàòîê */
   *res_reminder_p = cur_reminder;
 
-/*  printf ("=== FINISH DIVIDE: res_quotient_str=%s, cur_reminder=%d\n", res_quotient_str, cur_reminder); */
 }
 
-/* Ïðîâåðêà ñòðîêîâîãî ïðåäñòàâëåíèÿ ÷èñëà íà íîëü. Ïîëàãàåì, ÷òî
- * êðèòåðèåì áóäåò äëèíà ñòðîêè åäèíèöà, è íóëåâîé ýëåìåíò ñòðîêè - 0 */
 static int
 is_number_zero (char *str)
 {
@@ -189,22 +169,19 @@ is_number_zero (char *str)
   return 0;
 }
 
-/* Ïðåîáðàçîâàíèå ñòðîêîâîãî âèäà ÷èñëà èç äåñÿòè÷íîé ñèñòåìû èñ÷èñëåíèÿ
- * â äâîè÷íóþ. Îòâåòñâåííîñòü çà ïðàâèëüíûå ñòðîêîâûå áóôôåðà âîçëàãàåì
- * íà âûçûâàþùóþ ïðîöåäóðó */
 static void
-conv_dec_to_bin (char *src_str,  /* âõîäíàÿ ñòðîêà */
-                 int src_radix,  /* ñèñòåìà èñ÷èñëåíèÿ âõîäíîãî ÷èñëà */
-                 char *res_str,  /* ðåçóëüòèðóþùàÿ ñòðîêà */
-                 int res_radix)  /* ñèñòåìà èñ÷èñëåíèÿ ðåçóëüòèðóþùåãî ÷èñëà */
+conv_dec_to_bin (char *src_str,
+                 int src_radix,
+                 char *res_str,
+                 int res_radix)
 {
-  char divident_str[N_SRC]; /* ñòðîêà äëÿ äåëèòåëÿ */
-  char quotient_str[N_SRC]; /* ñòðîêà äëÿ ÷àñòíîãî */
-  int reminder;             /* îñòàòîê */
-  int digits[N_DST];        /* ìàññèâ äëÿ õðàíåíèÿ îñòàòêîâ */
-  int digit_ind;            /* òåêóùàÿ ïîçèöèÿ â ìàññèâå digits */
-  int int_val;              /* ïðîìåæóòî÷íîå çíà÷åíèå äëÿ öåëîãî */
-  char char_val;            /* ïðîìåæóòî÷íîå çíà÷åíèå äëÿ ñèìâîëà */
+  char divident_str[N_SRC];
+  char quotient_str[N_SRC];
+  int reminder;
+  int digits[N_DST];  
+  int digit_ind;          
+  int int_val;             
+  char char_val;            
   int i;
 
   digit_ind = 0;
@@ -264,11 +241,30 @@ int main()
         printf("Received packet from %s:%d\n\n", 
                         inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
-
         while(1)
         {
-
             bytes_read = recv(sock, buf, MSG_LEN, 0);
+            if (strlen(buf) == 1 || strlen(buf) == 2)
+            {
+              if (strlen(buf) == 1)
+                printf("Received index: %s\n", buf);
+              else
+              {
+                FILE *fp;
+                char name[] = "ip_adresses.txt";
+                if ((fp = fopen(name, "r")) == NULL)
+                {
+                    return 0;
+                }
+                char cc[256] = {};
+                char buff[1000] = {};
+                while ((fgets(cc, 256, fp))!=NULL)
+                {
+                  strcat(buff, cc);
+                }
+                send(sock, buff, sizeof(buff), 0);
+              }
+            }
             if(bytes_read <= 0) break;
 
             FILE *fp;
@@ -284,28 +280,19 @@ int main()
 
                 char *estr;
                 estr = fgets (buf,sizeof(buf),fp);
-              //Проверка на конец файла или ошибку чтения
                 if (estr == NULL)
                 {
-                     // Проверяем, что именно произошло: кончился файл
-                     // или это ошибка чтения
                      if ( feof (fp) != 0)
                      {  
-                        //Если файл закончился, выводим сообщение о завершении 
-                        //чтения и выходим из бесконечного цикла
                         
                         break;
                      }
                      else
                      {
-                        //Если при чтении произошла ошибка, выводим сообщение 
-                        //об ошибке и выходим из бесконечного цикла
                         
                         break;
                      }
                 }
-                //Если файл не закончился, и не было ошибки чтения 
-                //выводим считанную строку  на экран
                 if (i == index)
                 {
                     break;
@@ -314,10 +301,74 @@ int main()
                 strcpy(old_buf, buf);
                 i++;
             }
-            send(sock, old_buf, sizeof(old_buf), 0);
-            conv_dec_to_bin(old_buf, 10, new_buf, 16);
-            printf("%s\n", new_buf);
-            send(sock, new_buf, sizeof(new_buf), 0);
+
+            int main_num[3];
+            int k = 0;
+            int j = 0;
+            int nums[3];
+            printf("The main address: %s\n", old_buf);
+            old_buf[strlen(old_buf)] = '.';
+            for (int i = 0; i < strlen(old_buf); i++)
+            {
+                if (old_buf[i] != '.' && old_buf[i] != '\0')
+                {
+                    nums[j] = old_buf[i] - '0';
+                    j++;
+                }
+                else
+                {
+                    if (j == 1)
+                      main_num[k] = nums[0];
+                    else if (j == 2)
+                      main_num[k] = nums[0] * 10 + nums[1];
+                    else if (j == 3)
+                      main_num[k] = nums[0] * 100 + nums[1] * 10 + nums[2];
+
+                    k++;
+                    j = 0;
+                }
+            }
+            char buf[50];
+            char buf1[50];
+            char buf2[50];
+            char buf3[50];
+            char buf4[50];
+            char main_buf[100];
+            char main_buf1[100];
+            char main_buf2[100];
+            char main_buf3[100];
+            sprintf(buf,"%d", main_num[0]);
+            conv_dec_to_bin(buf, 10, buf1, 16);
+            sprintf(buf,"%d", main_num[1]);
+            conv_dec_to_bin(buf, 10, buf2, 16);
+            sprintf(buf,"%d", main_num[2]);
+            conv_dec_to_bin(buf, 10, buf3, 16);
+            sprintf(buf,"%d", main_num[3]);
+            conv_dec_to_bin(buf, 10, buf4, 16);
+            sprintf(main_buf1, "%s.%s.%s.%s", buf1, buf2, buf3, buf4);
+
+            sprintf(buf,"%d", main_num[0]);
+            conv_dec_to_bin(buf, 10, buf1, 8);
+            sprintf(buf,"%d", main_num[1]);
+            conv_dec_to_bin(buf, 10, buf2, 8);
+            sprintf(buf,"%d", main_num[2]);
+            conv_dec_to_bin(buf, 10, buf3, 8);
+            sprintf(buf,"%d", main_num[3]);
+            conv_dec_to_bin(buf, 10, buf4, 8);
+            sprintf(main_buf2, "%s.%s.%s.%s", buf1, buf2, buf3, buf4);
+
+
+            sprintf(buf,"%d", main_num[0]);
+            conv_dec_to_bin(buf, 10, buf1, 2);
+            sprintf(buf,"%d", main_num[1]);
+            conv_dec_to_bin(buf, 10, buf2, 2);
+            sprintf(buf,"%d", main_num[2]);
+            conv_dec_to_bin(buf, 10, buf3, 2);
+            sprintf(buf,"%d", main_num[3]);
+            conv_dec_to_bin(buf, 10, buf4, 2);
+            sprintf(main_buf3, "%s.%s.%s.%s", buf1, buf2, buf3, buf4);
+            sprintf(main_buf, "%s\n%s\n%s\n", main_buf1, main_buf2, main_buf3);
+            send(sock, main_buf, sizeof(main_buf), 0);
         }
     
         close(sock);
